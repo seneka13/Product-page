@@ -1,5 +1,6 @@
+import { Cart } from '../model/cart';
 import { Product } from '../model/product';
-import { RouterController } from '../types';
+import { CartType, RouterController, ProductType } from '../types';
 
 export const getProducts: RouterController = (req, res, next) => {
   //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
@@ -34,16 +35,47 @@ export const getIndex: RouterController = (req, res, next) => {
   });
 };
 
+type CartProduct = {
+  productData: ProductType;
+  qty: number;
+};
+
 export const getCart: RouterController = (req, res, next) => {
-  res.render('shop/cart', {
-    pageTitle: 'Cart',
-    path: '/cart',
+  Cart.getCart((cart: CartType) => {
+    Product.fetchAll((products: ProductType[]) => {
+      const cartProductArr: CartProduct[] = [];
+      products.reduce((cartsArr, p) => {
+        const cartData = cart.products.find((c) => p.id === c.id);
+        if (cartData) {
+          cartsArr.push({ productData: p, qty: cartData.qty });
+        }
+        return cartsArr;
+      }, cartProductArr);
+      res.render('shop/cart', {
+        pageTitle: 'Cart',
+        path: '/cart',
+        products: cartProductArr || [],
+      });
+    });
   });
 };
 
 export const postCart: RouterController = (req, res, next) => {
-  const prodId = req.body.productId;
+  const prodId = req.body.prodId;
+  Product.findById(prodId, (prod: any) => {
+    Cart.addProduct(prodId, prod.price);
+  });
+  res.redirect('/');
+};
+
+export const postCartDeleteItem: RouterController = (req, res, next) => {
+  const prodId = req.body.prodId;
   console.log(prodId);
+  Product.findById(prodId, (prod: any) => {
+    console.log(prod);
+    Cart.deleteProduct(prodId, prod.price);
+    res.redirect('/cart');
+  });
 };
 
 export const getOrders: RouterController = (req, res, next) => {

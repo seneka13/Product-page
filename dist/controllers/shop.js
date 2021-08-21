@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCheckout = exports.getOrders = exports.postCart = exports.getCart = exports.getIndex = exports.getProduct = exports.getProducts = void 0;
+exports.getCheckout = exports.getOrders = exports.postCartDeleteItem = exports.postCart = exports.getCart = exports.getIndex = exports.getProduct = exports.getProducts = void 0;
+var cart_1 = require("../model/cart");
 var product_1 = require("../model/product");
 var getProducts = function (req, res, next) {
     //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
@@ -36,17 +37,43 @@ var getIndex = function (req, res, next) {
 };
 exports.getIndex = getIndex;
 var getCart = function (req, res, next) {
-    res.render('shop/cart', {
-        pageTitle: 'Cart',
-        path: '/cart',
+    cart_1.Cart.getCart(function (cart) {
+        product_1.Product.fetchAll(function (products) {
+            var cartProductArr = [];
+            products.reduce(function (cartsArr, p) {
+                var cartData = cart.products.find(function (c) { return p.id === c.id; });
+                if (cartData) {
+                    cartsArr.push({ productData: p, qty: cartData.qty });
+                }
+                return cartsArr;
+            }, cartProductArr);
+            res.render('shop/cart', {
+                pageTitle: 'Cart',
+                path: '/cart',
+                products: cartProductArr || [],
+            });
+        });
     });
 };
 exports.getCart = getCart;
 var postCart = function (req, res, next) {
-    var prodId = req.body.productId;
-    console.log(prodId);
+    var prodId = req.body.prodId;
+    product_1.Product.findById(prodId, function (prod) {
+        cart_1.Cart.addProduct(prodId, prod.price);
+    });
+    res.redirect('/');
 };
 exports.postCart = postCart;
+var postCartDeleteItem = function (req, res, next) {
+    var prodId = req.body.prodId;
+    console.log(prodId);
+    product_1.Product.findById(prodId, function (prod) {
+        console.log(prod);
+        cart_1.Cart.deleteProduct(prodId, prod.price);
+        res.redirect('/cart');
+    });
+};
+exports.postCartDeleteItem = postCartDeleteItem;
 var getOrders = function (req, res, next) {
     res.render('shop/orders', {
         pageTitle: 'Orders',
