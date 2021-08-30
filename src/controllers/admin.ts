@@ -1,4 +1,4 @@
-import { Product } from '../model/product';
+import Product from '../model/product';
 import { RouterController } from '../types';
 
 export const addProduct: RouterController = (req, res, next) => {
@@ -14,7 +14,12 @@ export const addProduct: RouterController = (req, res, next) => {
 export const postAddProduct: RouterController = async (req, res, next) => {
   try {
     const { title, imgUrl, price, description } = req.body;
-    const product = await Product.create({ title, imgUrl, price, description });
+    const product = req.user.createProduct({
+      title,
+      imgUrl,
+      price,
+      description,
+    });
     res.redirect('/admin/products');
   } catch (error) {
     console.log(error);
@@ -25,7 +30,7 @@ export const editProduct: RouterController = async (req, res, next) => {
   const editMode = req.query.edit;
   const prodId = req.params.prodId;
 
-  const product = await Product.findByPk(prodId);
+  const product = await req.user.getProducts({ where: { id: prodId } });
   if (!editMode || !product) {
     return res.redirect('/');
   }
@@ -60,7 +65,7 @@ export const postDeleteProduct: RouterController = async (req, res, next) => {
 };
 
 export const getProducts: RouterController = async (req, res, next) => {
-  const products = await Product.findAll();
+  const products = await req.user.getProducts();
   res.render('admin/products', {
     prods: products || [],
     pageTitle: 'Admin Products',

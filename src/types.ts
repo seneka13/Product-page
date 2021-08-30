@@ -1,8 +1,11 @@
 import express from 'express';
-import { Model, ModelCtor } from 'sequelize/types';
+
+export interface ModifiedRequest extends express.Request {
+  user?: any;
+}
 
 export type RouterController = (
-  req: express.Request,
+  req: ModifiedRequest,
   res: express.Response,
   next: express.NextFunction
 ) => void;

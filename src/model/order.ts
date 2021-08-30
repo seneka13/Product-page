@@ -1,7 +1,7 @@
 import { DataTypes, Sequelize } from 'sequelize';
 import sequelize from '../utils/database';
 
-export const CartItem = sequelize.define('cartItem', {
+export const OrderItem = sequelize.define('orderItem', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -11,7 +11,7 @@ export const CartItem = sequelize.define('cartItem', {
   quantity: DataTypes.INTEGER,
 });
 
-export const Cart = sequelize.define('cart', {
+export const Order = sequelize.define('order', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,

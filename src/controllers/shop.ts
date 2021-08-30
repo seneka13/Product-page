@@ -1,5 +1,5 @@
 import { Cart } from '../model/cart';
-import { Product } from '../model/product';
+import Product, { ProductType } from '../model/product';
 import { CartType, RouterController } from '../types';
 
 export const getProducts: RouterController = async (req, res, next) => {
@@ -44,50 +44,74 @@ export const getIndex: RouterController = async (req, res, next) => {
   }
 };
 
-export const getCart: RouterController = (req, res, next) => {
-  Cart.getCart((cart: CartType) => {
-    Product.findAll()
-      .then(([rows, fieldData]) => {
-        res.render('shop/cart', {
-          pageTitle: 'Cart',
-          path: '/cart',
-          products: rows || [],
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  });
+export const getCart: RouterController = async (req, res, next) => {
+  try {
+    const cart = await req.user.getCart();
+    const products = await cart.getProducts();
+    res.render('shop/cart', {
+      pageTitle: 'Cart',
+      path: '/cart',
+      products,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const postCart: RouterController = (req, res, next) => {
+export const postCart: RouterController = async (req, res, next) => {
   const prodId = req.body.prodId;
-  Product.findById(prodId, (prod: any) => {
-    Cart.addProduct(prodId, prod.price);
+  const cart = await req.user.getCart();
+  const products = await cart.getProducts({ where: { id: prodId } });
+  const product = products.length > 0 && products[0];
+  let newQuantity = 1;
+  if (product) {
+    const oldQty = product.cartItem?.quantity;
+    newQuantity = oldQty + 1;
+    await cart.addProduct(product, {
+      through: { quantity: newQuantity },
+    });
+    res.redirect('/');
+    return;
+  }
+  const originProduct = await Product.findByPk(prodId);
+  await cart.addProduct(originProduct, {
+    through: { quantity: newQuantity },
   });
   res.redirect('/');
 };
 
-export const postCartDeleteItem: RouterController = (req, res, next) => {
-  const prodId = req.body.prodId;
-  console.log(prodId);
-  Product.findByPk(prodId, (prod: any) => {
-    console.log(prod);
-    Cart.deleteProduct(prodId, prod.price);
+export const postCartDeleteItem: RouterController = async (req, res, next) => {
+  try {
+    const prodId = req.body.prodId;
+    const cart = await req.user.getCart();
+    const products = await cart.getProducts({ where: { id: prodId } });
+    const product = products[0];
+    product.cartItem.destroy();
     res.redirect('/cart');
-  });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const getOrders: RouterController = (req, res, next) => {
+export const postOrder: RouterController = async (req, res, next) => {
+  const cart = await req.user.getCart();
+  const products = await cart.getProducts();
+  const order = await req.user.createOrder();
+  await order.addProducts(
+    products.map((p: any) => {
+      p.orderItem = { quantity: p.cartItem.quantity };
+      return p;
+    })
+  );
+  await cart.setProducts(null);
+  res.redirect('/orders');
+};
+
+export const getOrders: RouterController = async (req, res, next) => {
+  const orders = await req.user.getOrders({ include: ['products'] });
   res.render('shop/orders', {
     pageTitle: 'Orders',
     path: '/orders',
-  });
-};
-
-export const getCheckout: RouterController = (req, res, next) => {
-  res.render('shop/checkout', {
-    pageTitle: 'Checkout',
-    path: '/checkout',
+    orders,
   });
 };

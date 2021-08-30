@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'path';
 import {
   getIndex,
   getCart,
@@ -8,6 +7,7 @@ import {
   getOrders,
   getProduct,
   postCartDeleteItem,
+  postOrder,
 } from '../controllers/shop';
 
 const router = express.Router();
@@ -24,8 +24,9 @@ router.post('/cart', postCart);
 
 router.post('/cart-delete-item', postCartDeleteItem);
 
+router.post('/create-order', postOrder);
+
 router.get('/orders', getOrders);
 
-router.get('/checkout', getCart);
 
 export default router;

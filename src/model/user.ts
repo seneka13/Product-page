@@ -1,13 +1,15 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
+import { CartType } from '../types';
 import sqlize from '../utils/database';
 
-interface UsetType extends Model {
+export interface UserType extends Model {
   readonly id: number;
   name: string;
   email: string;
+  createCart: () => Promise<CartType>;
 }
 
-const User = sqlize.define<UsetType>('user', {
+export const User = sqlize.define<UserType>('user', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
