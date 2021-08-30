@@ -3,6 +3,7 @@ import { adminRouter } from './routes/admin';
 import shopRouter from './routes/shop';
 import path from 'path';
 import { get404 } from './controllers/404';
+import sqlize from './utils/database';
 
 const app = express();
 
@@ -16,4 +17,9 @@ app.use('/admin', adminRouter);
 
 app.use(get404);
 
-app.listen(3000);
+sqlize
+  .sync()
+  .then((result) => {
+    app.listen(3000);
+  })
+  .catch((err) => console.log(err));

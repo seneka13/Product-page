@@ -13,4 +13,4 @@ exports.adminRouter.get('/edit-product/:prodId', admin_1.editProduct);
 exports.adminRouter.post('/edit-product', admin_1.postEditProduct);
 exports.adminRouter.get('/products', admin_1.getProducts);
 exports.adminRouter.post('/delete-product', admin_1.postDeleteProduct);
-exports.adminRouter.post('/add-product', admin_1.productPosts);
+exports.adminRouter.post('/add-product', admin_1.postAddProduct);

@@ -1,62 +1,62 @@
 import { Cart } from '../model/cart';
 import { Product } from '../model/product';
-import { CartType, RouterController, ProductType } from '../types';
+import { CartType, RouterController } from '../types';
 
-export const getProducts: RouterController = (req, res, next) => {
+export const getProducts: RouterController = async (req, res, next) => {
   //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
-  Product.fetchAll((products: any) => {
+  try {
+    const allProducts = await Product.findAll();
     res.render('shop/product-list', {
-      prods: products,
-      pageTitle: 'Shop',
+      pageTitle: 'Cart',
       path: '/products',
+      prods: allProducts,
     });
-  });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const getProduct: RouterController = (req, res, next) => {
+export const getProduct: RouterController = async (req, res, next) => {
   //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
-  const prodId = req.params.prodId;
-  Product.findById(prodId, (product: any) => {
+  try {
+    const prodId = req.params.prodId;
+    const [product] = await Product.findAll({ where: { id: prodId } });
     res.render('shop/product-detail', {
-      product,
+      product: product,
       pageTitle: 'Product Page',
       path: '/products',
     });
-  });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const getIndex: RouterController = (req, res, next) => {
-  Product.fetchAll((products: any) => {
+export const getIndex: RouterController = async (req, res, next) => {
+  try {
+    const allProducts = await Product.findAll();
     res.render('shop/index', {
-      prods: products,
-      pageTitle: 'Main Page',
+      pageTitle: 'Cart',
       path: '/',
+      prods: allProducts,
     });
-  });
-};
-
-type CartProduct = {
-  productData: ProductType;
-  qty: number;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const getCart: RouterController = (req, res, next) => {
   Cart.getCart((cart: CartType) => {
-    Product.fetchAll((products: ProductType[]) => {
-      const cartProductArr: CartProduct[] = [];
-      products.reduce((cartsArr, p) => {
-        const cartData = cart.products.find((c) => p.id === c.id);
-        if (cartData) {
-          cartsArr.push({ productData: p, qty: cartData.qty });
-        }
-        return cartsArr;
-      }, cartProductArr);
-      res.render('shop/cart', {
-        pageTitle: 'Cart',
-        path: '/cart',
-        products: cartProductArr || [],
+    Product.findAll()
+      .then(([rows, fieldData]) => {
+        res.render('shop/cart', {
+          pageTitle: 'Cart',
+          path: '/cart',
+          products: rows || [],
+        });
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    });
   });
 };
 
@@ -71,7 +71,7 @@ export const postCart: RouterController = (req, res, next) => {
 export const postCartDeleteItem: RouterController = (req, res, next) => {
   const prodId = req.body.prodId;
   console.log(prodId);
-  Product.findById(prodId, (prod: any) => {
+  Product.findByPk(prodId, (prod: any) => {
     console.log(prod);
     Cart.deleteProduct(prodId, prod.price);
     res.redirect('/cart');

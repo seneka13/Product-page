@@ -6,7 +6,7 @@ import {
   getProducts,
   postDeleteProduct,
   postEditProduct,
-  productPosts,
+  postAddProduct,
 } from '../controllers/admin';
 
 const app = express();
@@ -23,4 +23,4 @@ adminRouter.get('/products', getProducts);
 
 adminRouter.post('/delete-product', postDeleteProduct);
 
-adminRouter.post('/add-product', productPosts);
+adminRouter.post('/add-product', postAddProduct);

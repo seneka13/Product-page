@@ -11,49 +11,59 @@ export const addProduct: RouterController = (req, res, next) => {
   });
 };
 
-export const editProduct: RouterController = (req, res, next) => {
+export const postAddProduct: RouterController = async (req, res, next) => {
+  try {
+    const { title, imgUrl, price, description } = req.body;
+    const product = await Product.create({ title, imgUrl, price, description });
+    res.redirect('/admin/products');
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const editProduct: RouterController = async (req, res, next) => {
   const editMode = req.query.edit;
   const prodId = req.params.prodId;
-  if (!editMode) {
+
+  const product = await Product.findByPk(prodId);
+  if (!editMode || !product) {
     return res.redirect('/');
   }
-  Product.findById(prodId, (product: any) => {
-    res.render('admin/edit-product', {
-      product,
-      pageTitle: 'Edit Product',
-      path: '/admin/add-product',
-      editing: editMode,
-    });
+  res.render('admin/edit-product', {
+    product,
+    pageTitle: 'Edit Product',
+    path: '/admin/add-product',
+    editing: editMode,
   });
 };
 
-export const postEditProduct: RouterController = (req, res, next) => {
+export const postEditProduct: RouterController = async (req, res, next) => {
   const { prodId, title, imgUrl, price, description } = req.body;
-  const product = new Product(title, price, description, imgUrl, prodId);
-  product.save();
-  res.redirect('/admin/products');
+  try {
+    const product = await Product.findByPk(prodId);
+    product!.title = title;
+    product!.imgUrl = imgUrl;
+    product!.price = price;
+    product!.description = description;
+    await product?.save();
+    res.redirect('/admin/products');
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const postDeleteProduct: RouterController = (req, res, next) => {
+export const postDeleteProduct: RouterController = async (req, res, next) => {
   const { prodId } = req.body;
-  console.log(prodId);
-  Product.deleteById(prodId);
+  await Product.destroy({ where: { id: prodId } });
+  //   await product?.destroy();
   res.redirect('/admin/products');
 };
 
-export const getProducts: RouterController = (req, res, next) => {
-  Product.fetchAll((products: any) => {
-    res.render('admin/products', {
-      prods: products,
-      pageTitle: 'Admin Products',
-      path: '/admin/products',
-    });
+export const getProducts: RouterController = async (req, res, next) => {
+  const products = await Product.findAll();
+  res.render('admin/products', {
+    prods: products || [],
+    pageTitle: 'Admin Products',
+    path: '/admin/products',
   });
-};
-
-export const productPosts: RouterController = (req, res, next) => {
-  const { title, imgUrl, price, description } = req.body;
-  const product = new Product(title, price, description, imgUrl, null);
-  product.save();
-  res.redirect('/products');
 };
