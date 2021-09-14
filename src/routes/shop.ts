@@ -2,10 +2,10 @@ import express from 'express';
 import {
   getIndex,
   getCart,
-  postCart,
   getProducts,
   getOrders,
   getProduct,
+  postCart,
   postCartDeleteItem,
   postOrder,
 } from '../controllers/shop';
@@ -27,6 +27,5 @@ router.post('/cart-delete-item', postCartDeleteItem);
 router.post('/create-order', postOrder);
 
 router.get('/orders', getOrders);
-
 
 export default router;

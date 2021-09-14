@@ -1,52 +1,114 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../utils/database';
+import { ObjectId } from 'bson';
+import { DataTypes, Optional } from 'sequelize';
+import { MongoDb } from '../utils/database';
 
 export interface ProductType {
-  readonly id: number;
+  readonly _id?: ObjectId;
   title: string;
   price: number;
   description: string;
   imgUrl: string;
-  readonly userId?: number;
+  readonly userId?: string;
 }
 
-interface ProductTypeAttributes extends Optional<ProductType, 'id'> {}
+class Product implements ProductType {
+  public _id;
+  public title;
+  public price;
+  public description;
+  public imgUrl;
+  userId;
+  constructor(
+    title: string,
+    price: number,
+    description: string,
+    imgUrl: string,
+    userId?: string,
+    id?: ObjectId
+  ) {
+    this.title = title;
+    this.price = price;
+    this.description = description;
+    this.imgUrl = imgUrl;
+    this._id = id && new ObjectId(id);
+    this.userId = userId;
+  }
 
-class Product extends Model<ProductType, ProductTypeAttributes> implements ProductType {
-  public id!: number;
-  public title!: string;
-  public price!: number;
-  public description!: string;
-  public imgUrl!: string;
+  save() {
+    let dbOb;
+    const db = MongoDb.getDb();
+    if (this._id) {
+      dbOb = db.collection('products').updateOne({ _id: this._id }, { $set: this });
+    } else {
+      dbOb = db.collection('products').insertOne(this);
+    }
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+    return dbOb
+      .then((data) => {
+        console.log(data, 'success');
+      })
+      .catch(console.error);
+  }
+
+  static fetchAll() {
+    const db = MongoDb.getDb();
+    return db
+      .collection('products')
+      .find()
+      .toArray()
+      .then((products) => {
+        return products;
+      })
+      .catch(console.error);
+  }
+
+  static getById(id: any) {
+    const db = MongoDb.getDb();
+    return db
+      .collection('products')
+      .findOne({ _id: new ObjectId(id) })
+      .then((product) => {
+        return product;
+      })
+      .catch(console.error);
+  }
+
+  static deleteById(id: any) {
+    const db = MongoDb.getDb();
+    return db
+      .collection('products')
+      .deleteOne({ _id: new ObjectId(id) })
+      .then((product) => {
+        console.log('Deleted');
+      })
+      .catch(console.error);
+  }
 }
 
-Product.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      allowNull: false,
-      primaryKey: true,
-    },
-    title: DataTypes.STRING,
-    price: {
-      type: DataTypes.DOUBLE,
-      allowNull: false,
-    },
-    imgUrl: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  { sequelize, modelName: 'product' }
-);
+// Product.init(
+//   {
+//     id: {
+//       type: DataTypes.INTEGER,
+//       autoIncrement: true,
+//       allowNull: false,
+//       primaryKey: true,
+//     },
+//     title: DataTypes.STRING,
+//     price: {
+//       type: DataTypes.DOUBLE,
+//       allowNull: false,
+//     },
+//     imgUrl: {
+//       type: DataTypes.STRING,
+//       allowNull: false,
+//     },
+//     description: {
+//       type: DataTypes.STRING,
+//       allowNull: false,
+//     },
+//   },
+//   { sequelize, modelName: 'product' }
+// );
 
 export default Product;
 

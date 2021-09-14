@@ -1,11 +1,12 @@
-import { Cart } from '../model/cart';
+// import { Cart } from '../model/cart';
 import Product, { ProductType } from '../model/product';
+import { User } from '../model/user';
 import { CartType, RouterController } from '../types';
 
 export const getProducts: RouterController = async (req, res, next) => {
   //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
   try {
-    const allProducts = await Product.findAll();
+    const allProducts = await Product.fetchAll();
     res.render('shop/product-list', {
       pageTitle: 'Cart',
       path: '/products',
@@ -20,7 +21,7 @@ export const getProduct: RouterController = async (req, res, next) => {
   //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
   try {
     const prodId = req.params.prodId;
-    const [product] = await Product.findAll({ where: { id: prodId } });
+    const product = await Product.getById(prodId);
     res.render('shop/product-detail', {
       product: product,
       pageTitle: 'Product Page',
@@ -33,7 +34,7 @@ export const getProduct: RouterController = async (req, res, next) => {
 
 export const getIndex: RouterController = async (req, res, next) => {
   try {
-    const allProducts = await Product.findAll();
+    const allProducts = await Product.fetchAll();
     res.render('shop/index', {
       pageTitle: 'Cart',
       path: '/',
@@ -46,8 +47,7 @@ export const getIndex: RouterController = async (req, res, next) => {
 
 export const getCart: RouterController = async (req, res, next) => {
   try {
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts();
+    const products = await req.user.getCart();
     res.render('shop/cart', {
       pageTitle: 'Cart',
       path: '/cart',
@@ -59,34 +59,20 @@ export const getCart: RouterController = async (req, res, next) => {
 };
 
 export const postCart: RouterController = async (req, res, next) => {
-  const prodId = req.body.prodId;
-  const cart = await req.user.getCart();
-  const products = await cart.getProducts({ where: { id: prodId } });
-  const product = products.length > 0 && products[0];
-  let newQuantity = 1;
-  if (product) {
-    const oldQty = product.cartItem?.quantity;
-    newQuantity = oldQty + 1;
-    await cart.addProduct(product, {
-      through: { quantity: newQuantity },
-    });
-    res.redirect('/');
-    return;
+  try {
+    const { prodId } = req.body;
+    const product = await Product.getById(prodId);
+    await req.user.addToCart(product);
+    res.redirect('/cart');
+  } catch (error) {
+    console.log(error);
   }
-  const originProduct = await Product.findByPk(prodId);
-  await cart.addProduct(originProduct, {
-    through: { quantity: newQuantity },
-  });
-  res.redirect('/');
 };
 
 export const postCartDeleteItem: RouterController = async (req, res, next) => {
   try {
     const prodId = req.body.prodId;
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts({ where: { id: prodId } });
-    const product = products[0];
-    product.cartItem.destroy();
+    await req.user.deleteCart(prodId);
     res.redirect('/cart');
   } catch (error) {
     console.log(error);
@@ -94,21 +80,13 @@ export const postCartDeleteItem: RouterController = async (req, res, next) => {
 };
 
 export const postOrder: RouterController = async (req, res, next) => {
-  const cart = await req.user.getCart();
-  const products = await cart.getProducts();
-  const order = await req.user.createOrder();
-  await order.addProducts(
-    products.map((p: any) => {
-      p.orderItem = { quantity: p.cartItem.quantity };
-      return p;
-    })
-  );
-  await cart.setProducts(null);
+  await req.user.addOrder();
   res.redirect('/orders');
 };
 
 export const getOrders: RouterController = async (req, res, next) => {
-  const orders = await req.user.getOrders({ include: ['products'] });
+  const orders = await req.user.getOrders();
+  console.log(orders);
   res.render('shop/orders', {
     pageTitle: 'Orders',
     path: '/orders',
