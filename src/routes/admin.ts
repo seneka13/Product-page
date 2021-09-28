@@ -1,13 +1,26 @@
 import express from 'express';
 import path from 'path';
-import { addProducts, getProducts, productPosts } from '../controllers/admin';
+import {
+  addProduct,
+  editProduct,
+  getProducts,
+  postDeleteProduct,
+  postEditProduct,
+  postAddProduct,
+} from '../controllers/admin';
 
 const app = express();
 
 export const adminRouter = express.Router();
 
-adminRouter.get('/add-product', addProducts);
+adminRouter.get('/add-product', addProduct);
 
-adminRouter.get('/products', getProducts)
+adminRouter.get('/edit-product/:prodId', editProduct);
 
-adminRouter.post('/add-product', productPosts);
+adminRouter.post('/edit-product', postEditProduct);
+
+adminRouter.get('/products', getProducts);
+
+adminRouter.post('/delete-product', postDeleteProduct);
+
+adminRouter.post('/add-product', postAddProduct);

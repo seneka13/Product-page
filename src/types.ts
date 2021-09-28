@@ -1,15 +1,21 @@
 import express from 'express';
 
+export interface ModifiedRequest extends express.Request {
+  user?: any;
+}
+
 export type RouterController = (
-  req: express.Request,
+  req: ModifiedRequest,
   res: express.Response,
   next: express.NextFunction
 ) => void;
 
-export interface ProductType {
+export type CartItemType = {
   readonly id: string | number;
-  title: string;
-  price: number;
-  description: string;
-  imgUrl: string;
-}
+  qty: number;
+};
+
+export type CartType = {
+  products: CartItemType[];
+  totalPrice: number;
+};
