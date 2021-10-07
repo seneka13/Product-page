@@ -1,4 +1,14 @@
-import mongoose, { Schema } from 'mongoose';
+import { Schema, model, ObjectId, SchemaTypes } from 'mongoose';
+import { User } from './user';
+
+export interface ProductModel {
+  _id: ObjectId;
+  title: string;
+  price: number;
+  description: string;
+  imgUrl: string;
+  userId: ObjectId;
+}
 
 const ProductSchema = new Schema({
   title: {
@@ -9,7 +19,22 @@ const ProductSchema = new Schema({
     type: Number,
     required: true,
   },
+  description: {
+    type: String,
+    required: true,
+  },
+  imgUrl: {
+    type: String,
+    required: true,
+  },
+  userId: {
+    type: SchemaTypes.ObjectId,
+    ref: 'User',
+    required: true,
+  },
 });
+
+export const Product = model<ProductModel>('Product', ProductSchema);
 
 // export interface ProductType {
 //   readonly _id?: ObjectId;

@@ -1,26 +1,27 @@
-// import express from 'express';
-// import path from 'path';
-// import {
-//   addProduct,
-//   editProduct,
-//   getProducts,
-//   postDeleteProduct,
-//   postEditProduct,
-//   postAddProduct,
-// } from '../controllers/admin';
+import express from 'express';
+import path from 'path';
+import {
+  addProduct,
+  editProduct,
+  getProducts,
+  postDeleteProduct,
+  postEditProduct,
+  postAddProduct,
+} from '../controllers/admin';
+import { isAuth } from '../middleware/isAuth';
 
-// const app = express();
+const app = express();
 
-// export const adminRouter = express.Router();
+export const adminRouter = express.Router();
 
-// adminRouter.get('/add-product', addProduct);
+adminRouter.get('/add-product', isAuth, addProduct);
 
-// adminRouter.get('/edit-product/:prodId', editProduct);
+adminRouter.post('/add-product', isAuth, postAddProduct);
 
-// adminRouter.post('/edit-product', postEditProduct);
+adminRouter.get('/edit-product/:prodId', isAuth, editProduct);
 
-// adminRouter.get('/products', getProducts);
+adminRouter.post('/edit-product', isAuth, postEditProduct);
 
-// adminRouter.post('/delete-product', postDeleteProduct);
+adminRouter.get('/products', isAuth, getProducts);
 
-// adminRouter.post('/add-product', postAddProduct);
+adminRouter.post('/delete-product', postDeleteProduct);

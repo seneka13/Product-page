@@ -1,23 +1,84 @@
-// // import { DataTypes } from 'sequelize';
-// // import { CartType } from '../types';
+import { ObjectId } from 'bson';
+import { model, Schema } from 'mongoose';
+import { Product, ProductModel } from './product';
 
-// import { ObjectId } from 'bson';
-// import { MongoDb } from '../utils/database';
-// // import Product from './product';
+interface UserCart {
+  items: {
+    prodId: number;
+    quantity: number;
+  }[];
+}
 
-// interface UserCart {
-//   items: {
-//     prodId: ObjectId;
-//     quantity: number;
-//   }[];
-// }
+export interface UserType {
+  name: string;
+  email: string;
+  password: string;
+  cart: UserCart;
+}
 
-// export interface UserType {
-//   readonly _id: ObjectId;
-//   name: string;
-//   email: string;
-//   cart: UserCart;
-// }
+const UserSchema = new Schema({
+  name: {
+    type: String,
+    required: false,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  cart: {
+    items: [
+      {
+        prodId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Product',
+          required: true,
+        },
+        quantity: { type: Number, required: true },
+      },
+    ],
+  },
+});
+
+UserSchema.methods.addToCart = function (product: ProductModel) {
+  try {
+    const cartProductIndex = this.cart.items.findIndex(
+      (cp: any) => this.cart.items && String(cp.prodId) === String(product._id)
+    );
+    let newQuantity = 1;
+    const updatedCartItems = [...this.cart.items];
+    if (cartProductIndex >= 0) {
+      newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+      updatedCartItems[cartProductIndex].quantity = newQuantity;
+    } else {
+      updatedCartItems.push({ prodId: product._id, quantity: newQuantity });
+    }
+    const updatedCart = {
+      items: updatedCartItems,
+    };
+
+    this.cart = updatedCart;
+    return this.save();
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+UserSchema.methods.removeFromCart = function (prodId: string) {
+  const updatedCartItems = this.cart.items.filter((i: any) => String(i.prodId) !== String(prodId));
+  this.cart.items = updatedCartItems;
+  return this.save();
+};
+
+UserSchema.methods.clearCart = function () {
+  this.cart = { items: [] };
+  return this.save();
+};
+
+export const User = model<UserType>('User', UserSchema);
 
 // export class User implements UserType {
 //   _id: ObjectId;
