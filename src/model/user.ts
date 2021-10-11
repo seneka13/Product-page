@@ -14,6 +14,8 @@ export interface UserType {
   email: string;
   password: string;
   cart: UserCart;
+  resetToken: string | undefined;
+  resetTokenExp: number | undefined;
 }
 
 const UserSchema = new Schema({
@@ -29,6 +31,8 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  resetToken: String,
+  resetTokenExp: Date,
   cart: {
     items: [
       {

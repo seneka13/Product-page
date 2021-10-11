@@ -1,7 +1,7 @@
 // import { Cart } from '../model/cart';
 import { Order } from '../model/order';
 import { Product } from '../model/product';
-import { CartType, RouterController } from '../types';
+import { RouterController } from '../types';
 
 export const getProducts: RouterController = async (req, res, next) => {
   //   res.sendFile(path.join(rootDir, 'views', 'shop.html'));
@@ -11,7 +11,6 @@ export const getProducts: RouterController = async (req, res, next) => {
       pageTitle: 'Products',
       path: '/products',
       prods: allProducts,
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -27,7 +26,6 @@ export const getProduct: RouterController = async (req, res, next) => {
       product: product,
       pageTitle: 'Product Page',
       path: '/products',
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -41,8 +39,6 @@ export const getIndex: RouterController = async (req, res, next) => {
       pageTitle: 'Main',
       path: '/',
       prods: allProducts,
-      isAuthenticated: req.session.isLoggedIn,
-	  csrfToken: req.csrfToken()
     });
   } catch (error) {
     console.log(error);
@@ -56,7 +52,6 @@ export const getCart: RouterController = async (req, res, next) => {
       pageTitle: 'Cart',
       path: '/cart',
       products: user.cart.items,
-      isAuthenticated: req.session.isLoggedIn,
     });
   } catch (error) {
     console.log(error);
@@ -93,7 +88,7 @@ export const postOrder: RouterController = async (req, res, next) => {
   await Order.create({
     products,
     user: {
-      name: req.user.name,
+      email: req.user.email,
       userId: req.user,
     },
   });
@@ -107,6 +102,5 @@ export const getOrders: RouterController = async (req, res, next) => {
     pageTitle: 'Orders',
     path: '/orders',
     orders,
-    isAuthenticated: req.session.isLoggedIn,
   });
 };

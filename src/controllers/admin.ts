@@ -45,6 +45,9 @@ export const postEditProduct: RouterController = async (req, res, next) => {
   const { prodId, title, imgUrl, price, description } = req.body;
   try {
     const product = await Product.findById(prodId);
+    if (String(product!.userId) !== String(req.user._id)) {
+      return res.redirect('/');
+    }
     product!.title = title;
     product!.imgUrl = imgUrl;
     product!.price = price;
@@ -59,12 +62,12 @@ export const postEditProduct: RouterController = async (req, res, next) => {
 
 export const postDeleteProduct: RouterController = async (req, res, next) => {
   const { prodId } = req.body;
-  await Product.findByIdAndDelete(prodId);
+  const product = await Product.deleteOne({ _id: prodId, userId: req.user._id });
   res.redirect('/admin/products');
 };
 
 export const getProducts: RouterController = async (req, res, next) => {
-  const products = await Product.find();
+  const products = await Product.find({ userId: req.user._id });
   // .select('title price -_id')
   // .populate('userId', 'name');
   res.render('admin/products', {

@@ -12,7 +12,7 @@ import { isAuth } from '../middleware/isAuth';
 
 const app = express();
 
-export const adminRouter = express.Router();
+const adminRouter = express.Router();
 
 adminRouter.get('/add-product', isAuth, addProduct);
 
@@ -25,3 +25,5 @@ adminRouter.post('/edit-product', isAuth, postEditProduct);
 adminRouter.get('/products', isAuth, getProducts);
 
 adminRouter.post('/delete-product', postDeleteProduct);
+
+export default adminRouter;
