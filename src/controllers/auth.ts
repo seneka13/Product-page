@@ -3,6 +3,7 @@ import { RouterController } from '../types';
 import sgMail from '@sendgrid/mail';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { validationResult } from 'express-validator';
 
 sgMail.setApiKey('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');
 
@@ -17,7 +18,15 @@ export const getLogin: RouterController = (req, res, next) => {
 
 export const postLogin: RouterController = async (req, res, next) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
   try {
+    if (!errors.isEmpty()) {
+      return res.status(422).render('auth/login', {
+        path: '/auth/login',
+        pageTitle: 'Login',
+        errorMessage: errors.array()[0].msg,
+      });
+    }
     const user = await User.findOne({ email });
     if (!user) {
       req.flash('error', 'Invalid email or password');
@@ -50,13 +59,18 @@ export const getSignup: RouterController = (req, res, next) => {
 };
 
 export const postSignup: RouterController = async (req, res, next) => {
-  const { email, password, confirmPassword } = req.body;
+  const { email, password } = req.body;
+  const errors = validationResult(req);
   try {
-    const user = await User.findOne({ email });
-    if (user) {
-      req.flash('error', 'Email exist already');
-      return res.redirect('/auth/signup');
+    console.log(errors.array(), 'validator');
+    if (!errors.isEmpty()) {
+      return res.status(422).render('auth/signup', {
+        path: '/auth/signup',
+        pageTitle: 'Signup',
+        errorMessage: errors.array()[0].msg,
+      });
     }
+
     const hashedPassword = await bcrypt.hash(password, 12);
     await User.create({ email, password: hashedPassword, cart: { items: [] } });
   } catch (error) {
@@ -64,7 +78,6 @@ export const postSignup: RouterController = async (req, res, next) => {
   }
 
   try {
-    console.log(email);
     await sgMail.send({
       to: email,
       from: 'samkazus130293@gmail.com',

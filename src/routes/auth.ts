@@ -10,6 +10,8 @@ import {
   postReset,
   postSignup,
 } from '../controllers/auth';
+import { check, body } from 'express-validator';
+import { User } from '../model/user';
 
 const authRouter = express.Router();
 
@@ -21,9 +23,45 @@ authRouter.get('/reset', getReset);
 
 authRouter.get('/reset/:token', getNewPassword);
 
-authRouter.post('/signup', postSignup);
+authRouter.post(
+  '/signup',
+  [
+    check('email', 'INVALID EMAIL !!!')
+      .isEmail()
+      .custom(async (value) => {
+        const user = await User.findOne({ email: value });
+        if (user) {
+          throw new Error('Email exist already');
+        }
+        return user;
+      }),
+    body('password', 'Please enter valid password').isLength({ min: 5, max: 16 }).isAlphanumeric(),
+    body('confirmPassword').custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Passwords have to match!');
+      }
+      return true;
+    }),
+  ],
+  postSignup
+);
 
-authRouter.post('/login', postLogin);
+authRouter.post(
+  '/login',
+  [
+    check('email', 'INVALID EMAIL !!!')
+      .isEmail()
+      .custom(async (value) => {
+        const user = await User.findOne({ email: value });
+        if (user) {
+          throw new Error('Email exist already');
+        }
+        return user;
+      }),
+    body('password', 'Please enter valid password').isLength({ min: 5, max: 16 }).isAlphanumeric(),
+  ],
+  postLogin
+);
 
 authRouter.post('/logout', postLogout);
 
