@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { validationResult } from 'express-validator';
 
-sgMail.setApiKey('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');
+sgMail.setApiKey();
 
 export const getLogin: RouterController = (req, res, next) => {
   let message = req.flash('error');
@@ -52,7 +52,7 @@ export const postLogin: RouterController = async (req, res, next) => {
 export const getSignup: RouterController = (req, res, next) => {
   let message = req.flash('error');
   res.render('auth/signup', {
-    path: '/auth/signup',
+    path: '/auth/signup/',
     pageTitle: 'Signup',
     errorMessage: message.length > 0 ? message[0] : null,
   });
@@ -62,7 +62,6 @@ export const postSignup: RouterController = async (req, res, next) => {
   const { email, password } = req.body;
   const errors = validationResult(req);
   try {
-    console.log(errors.array(), 'validator');
     if (!errors.isEmpty()) {
       return res.status(422).render('auth/signup', {
         path: '/auth/signup',

@@ -4,11 +4,12 @@ import {
   addProduct,
   editProduct,
   getProducts,
-  postDeleteProduct,
+  deleteProduct,
   postEditProduct,
   postAddProduct,
 } from '../controllers/admin';
 import { isAuth } from '../middleware/isAuth';
+import { check, body } from 'express-validator';
 
 const app = express();
 
@@ -24,6 +25,6 @@ adminRouter.post('/edit-product', isAuth, postEditProduct);
 
 adminRouter.get('/products', isAuth, getProducts);
 
-adminRouter.post('/delete-product', postDeleteProduct);
+adminRouter.delete('/product/:prodId', isAuth, deleteProduct);
 
 export default adminRouter;

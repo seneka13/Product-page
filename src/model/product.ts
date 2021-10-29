@@ -1,13 +1,13 @@
-import { Schema, model, ObjectId, SchemaTypes } from 'mongoose';
+import { Schema, model, SchemaTypes, Types } from 'mongoose';
 import { User } from './user';
 
 export interface ProductModel {
-  _id: ObjectId;
+  _id: Types.ObjectId;
   title: string;
   price: number;
   description: string;
   imgUrl: string;
-  userId: ObjectId;
+  userId: Types.ObjectId;
 }
 
 const ProductSchema = new Schema({

@@ -28,20 +28,27 @@ authRouter.post(
   [
     check('email', 'INVALID EMAIL !!!')
       .isEmail()
+      .normalizeEmail()
       .custom(async (value) => {
         const user = await User.findOne({ email: value });
         if (user) {
           throw new Error('Email exist already');
         }
         return user;
-      }),
-    body('password', 'Please enter valid password').isLength({ min: 5, max: 16 }).isAlphanumeric(),
-    body('confirmPassword').custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error('Passwords have to match!');
-      }
-      return true;
-    }),
+      })
+      .trim(),
+    body('password', 'Please enter valid password')
+      .isLength({ min: 5, max: 16 })
+      .isAlphanumeric()
+      .trim(),
+    body('confirmPassword')
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error('Passwords have to match!');
+        }
+        return true;
+      })
+      .trim(),
   ],
   postSignup
 );
@@ -49,15 +56,7 @@ authRouter.post(
 authRouter.post(
   '/login',
   [
-    check('email', 'INVALID EMAIL !!!')
-      .isEmail()
-      .custom(async (value) => {
-        const user = await User.findOne({ email: value });
-        if (user) {
-          throw new Error('Email exist already');
-        }
-        return user;
-      }),
+    check('email', 'INVALID EMAIL !!!').isEmail().normalizeEmail().trim(),
     body('password', 'Please enter valid password').isLength({ min: 5, max: 16 }).isAlphanumeric(),
   ],
   postLogin

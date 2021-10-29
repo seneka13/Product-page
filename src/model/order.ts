@@ -3,8 +3,11 @@ import { ProductModel } from './product';
 import { UserType } from './user';
 
 interface OrderModel {
-  products: ProductModel[];
-  user: UserType;
+  products: {
+    product: ProductModel;
+    quantity: number;
+  }[];
+  user: any;
 }
 
 const OrderSchema = new Schema({
